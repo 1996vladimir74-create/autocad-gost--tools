@@ -39,3 +39,11 @@ class AutoCADDocument:
             self.logger.info(
                 f"Файл сохранен: {path}"
             )
+    def save_as(
+    self,
+    path
+):
+
+    self.document.SaveAs(
+        path
+    )
