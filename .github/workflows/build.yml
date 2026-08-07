@@ -1,0 +1,71 @@
+name: Build AutoCAD GOST Tools
+
+
+on:
+
+  workflow_dispatch:
+
+
+  push:
+
+    branches:
+
+      - main
+
+
+
+jobs:
+
+
+  build:
+
+
+    runs-on: windows-latest
+
+
+    steps:
+
+
+    - name: Checkout
+
+      uses: actions/checkout@v4
+
+
+
+    - name: Python
+
+      uses: actions/setup-python@v5
+
+      with:
+
+        python-version: "3.12"
+
+
+
+    - name: Install
+
+      run:
+
+        pip install -r requirements.txt
+
+
+
+    - name: Build EXE
+
+      run:
+
+        pyinstaller AutoCAD_GOST_Tools.spec
+
+
+
+    - name: Upload
+
+      uses: actions/upload-artifact@v4
+
+      with:
+
+        name: AutoCAD_GOST_Tools
+
+        path:
+
+          dist/AutoCAD_GOST_Tools.exe
