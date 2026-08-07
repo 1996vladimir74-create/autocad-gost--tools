@@ -18,31 +18,35 @@ class Geometry:
 
 
 
-    def line(
-        self,
-        x1,
-        y1,
-        x2,
-        y2
-    ):
+   def line(
+    self,
+    x1,
+    y1,
+    x2,
+    y2,
+    layer=None
+):
 
-        start = (
+    entity = self.space.AddLine(
+        (
             x1,
             y1,
             0
-        )
-
-        end = (
+        ),
+        (
             x2,
             y2,
             0
         )
+    )
 
 
-        self.space.AddLine(
-            start,
-            end
-        )
+    if layer:
+
+        entity.Layer = layer
+
+
+    return entity
 
 
     def rectangle(
