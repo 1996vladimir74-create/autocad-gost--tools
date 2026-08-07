@@ -127,46 +127,135 @@ class MainWindow:
 
     def create_drawing(self):
 
-        drawing = Drawing(
+    from autocad.connection import AutoCADConnection
+    from autocad.layers import LayerManager
+    from gost.frame import GostFrame
+    from gost.title_block import TitleBlock
 
-            number=self.number_entry.get(),
 
-            name=self.name_entry.get(),
+    drawing = Drawing(
 
-            sheet_format=self.format_box.get(),
+        number=self.number_entry.get(),
 
-            orientation=self.orientation_box.get()
+        name=self.name_entry.get(),
+
+        sheet_format=self.format_box.get(),
+
+        orientation=self.orientation_box.get()
+
+    )
+
+
+    errors = drawing.validate()
+
+
+    if errors:
+
+        messagebox.showerror(
+            "Ошибка",
+            "\n".join(errors)
+        )
+
+        self.logger.warning(
+            str(errors)
+        )
+
+        return
+
+
+    try:
+
+        self.logger.info(
+            "Запуск создания чертежа"
         )
 
 
-        errors = drawing.validate()
+        # подключение AutoCAD
+
+        connection = AutoCADConnection()
+
+        acad = connection.connect()
 
 
-        if errors:
+        document = connection.get_document()
 
-            messagebox.showerror(
-                "Ошибка",
-                "\n".join(errors)
-            )
 
-            self.logger.warning(
-                str(errors)
-            )
 
-            return
+        # создание слоев
+
+        layers = LayerManager(
+            document
+        )
+
+        layers.create_default_layers()
+
+
+
+        # рамка
+
+        frame = GostFrame(
+            document
+        )
+
+
+        sheet = frame.create(
+
+            drawing.sheet_format,
+
+            drawing.orientation
+
+        )
+
+
+
+        # основная надпись
+
+        title = TitleBlock(
+            document
+        )
+
+
+        title.create(
+
+            drawing,
+
+            sheet["width"],
+
+            sheet["height"]
+
+        )
+
 
 
         self.logger.info(
-            f"Создан запрос: {drawing}"
+            "Чертеж успешно создан"
         )
 
 
         messagebox.showinfo(
+
             "Готово",
-            "Данные чертежа приняты.\n"
-            "Ожидание AutoCAD Engine."
+
+            "Чертеж создан в AutoCAD"
+
         )
 
+
+    except Exception as error:
+
+
+        self.logger.error(
+            str(error)
+        )
+
+
+        messagebox.showerror(
+
+            "Ошибка",
+
+            str(error)
+
+        )
 
     def run(self):
 
