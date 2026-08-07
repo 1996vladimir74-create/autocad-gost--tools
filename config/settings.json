@@ -1,0 +1,17 @@
+{
+    "application": "AutoCAD GOST Tools",
+    "version": "1.0",
+
+    "company": "",
+    "designer": "",
+
+    "default_format": "A3",
+    "default_orientation": "Landscape",
+
+    "units": "mm",
+
+    "autocad": {
+        "create_new_document": true,
+        "save_after_creation": true
+    }
+}
