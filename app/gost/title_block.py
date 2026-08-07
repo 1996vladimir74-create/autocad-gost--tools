@@ -42,7 +42,8 @@ class TitleBlock:
             x0,
             y0,
             x0 + width,
-            y0
+            y0,
+            "TITLE_BLOCK"
         )
 
 
@@ -50,7 +51,8 @@ class TitleBlock:
             x0 + width,
             y0,
             x0 + width,
-            y0 + height
+            y0 + height,
+            "TITLE_BLOCK"
         )
 
 
@@ -58,7 +60,8 @@ class TitleBlock:
             x0 + width,
             y0 + height,
             x0,
-            y0 + height
+            y0 + height,
+            "TITLE_BLOCK"
         )
 
 
@@ -66,7 +69,8 @@ class TitleBlock:
             x0,
             y0 + height,
             x0,
-            y0
+            y0,
+            "TITLE_BLOCK"
         )
 
 
