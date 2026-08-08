@@ -3,7 +3,6 @@ import logging
 
 class LayerManager:
 
-
     def __init__(self, document):
 
         self.document = document
@@ -12,51 +11,42 @@ class LayerManager:
             "AutoCAD_GOST_Tools"
         )
 
-
     def create_layer(
         self,
         name
     ):
 
-        layers = (
-            self.document.Layers
-        )
-
+        layers = self.document.Layers
 
         try:
+
+            layer = layers.Item(
+                name
+            )
+
+            return layer
+
+        except Exception:
 
             layer = layers.Add(
                 name
             )
 
             self.logger.info(
-                f"Создан слой {name}"
+                f"Создан слой: {name}"
             )
 
             return layer
 
-
-        except Exception:
-
-            return layers.Item(
-                name
-            )
-
-
     def create_default_layers(self):
 
-        layers = [
-
+        for name in [
             "FRAME",
             "TITLE_BLOCK",
             "TEXT",
             "AUXILIARY"
-
-        ]
-
-
-        for layer in layers:
+        ]:
 
             self.create_layer(
-                layer
+                name
             )
