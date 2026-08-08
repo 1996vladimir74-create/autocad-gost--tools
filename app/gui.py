@@ -132,29 +132,23 @@ class MainWindow:
         )
 
 
-    def create_drawing(self):
-
-    from autocad.connection import AutoCADConnection
-    from autocad.layers import LayerManager
-    from gost.frame import GostFrame
-    from gost.title_block import TitleBlock
-
+   def create_drawing(self):
 
     drawing = Drawing(
 
-        number=self.number_entry.get(),
+        number=self.number_entry.get().strip(),
 
-        name=self.name_entry.get(),
+        name=self.name_entry.get().strip(),
 
         sheet_format=self.format_box.get(),
 
-        orientation=self.orientation_box.get()
+        orientation=self.orientation_box.get(),
+
+        scale="1:1"
 
     )
 
-
     errors = drawing.validate()
-
 
     if errors:
 
@@ -164,46 +158,78 @@ class MainWindow:
         )
 
         self.logger.warning(
-            str(errors)
+            "Ошибка проверки: %s",
+            errors
         )
 
         return
 
-
     try:
 
         self.logger.info(
-            "Запуск создания чертежа"
+            "Начало создания чертежа: %s",
+            drawing
         )
 
-
-        # подключение AutoCAD
+        # --------------------------------
+        # 1. AutoCAD
+        # --------------------------------
 
         connection = AutoCADConnection()
 
         acad = connection.connect()
 
+        # --------------------------------
+        # 2. Новый DWG
+        # --------------------------------
 
-        document = connection.get_document()
+        raw_document = (
+            connection.create_document()
+        )
 
+        document = AutoCADDocument(
+            raw_document
+        )
 
+        document.set_units()
 
-        # создание слоев
+        # --------------------------------
+        # 3. Layout
+        # --------------------------------
+
+        document.get_layout()
+
+        paper_space = (
+            document.get_paper_space()
+        )
+
+        # --------------------------------
+        # 4. Подготовка AutoCAD
+        # --------------------------------
+
+        setup = AutoCADSetup(
+            raw_document
+        )
+
+        setup.prepare()
+
+        # --------------------------------
+        # 5. Слои
+        # --------------------------------
 
         layers = LayerManager(
-            document
+            raw_document
         )
 
         layers.create_default_layers()
 
-
-
-        # рамка
+        # --------------------------------
+        # 6. Рамка
+        # --------------------------------
 
         frame = GostFrame(
-            document
+            paper_space
         )
-
 
         sheet = frame.create(
 
@@ -213,16 +239,15 @@ class MainWindow:
 
         )
 
+        # --------------------------------
+        # 7. Основная надпись
+        # --------------------------------
 
-
-        # основная надпись
-
-        title = TitleBlock(
-            document
+        title_block = TitleBlock(
+            paper_space
         )
 
-
-        title.create(
+        title_block.create(
 
             drawing,
 
@@ -232,38 +257,36 @@ class MainWindow:
 
         )
 
+        # --------------------------------
+        # 8. Обновление AutoCAD
+        # --------------------------------
 
+        raw_document.Regen(
+            1
+        )
 
         self.logger.info(
             "Чертеж успешно создан"
         )
 
-
         messagebox.showinfo(
-
-            "Готово",
-
-            "Чертеж создан в AutoCAD"
-
+            "AutoCAD GOST Tools",
+            "Чертеж успешно создан в AutoCAD."
         )
-
 
     except Exception as error:
 
-
-        self.logger.error(
-            str(error)
+        self.logger.exception(
+            "Ошибка создания чертежа"
         )
-
 
         messagebox.showerror(
-
             "Ошибка",
-
-            str(error)
-
+            (
+                "Не удалось создать чертеж.\n\n"
+                f"{error}"
+            )
         )
-
     def run(self):
 
         self.root.mainloop()
