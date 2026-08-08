@@ -1,7 +1,6 @@
 class TextManager:
 
     def __init__(self, space):
-
         self.space = space
 
     def add_text(
@@ -12,6 +11,11 @@ class TextManager:
         height=3.5,
         layer="TEXT"
     ):
+        """
+        Создание обычного AutoCAD TEXT.
+        Пока намеренно не используем MText:
+        это уменьшает количество COM-зависимостей.
+        """
 
         entity = self.space.AddText(
             str(text),
@@ -22,36 +26,6 @@ class TextManager:
             ),
             float(height)
         )
-
-        entity.Layer = layer
-
-        return entity
-
-    def add_mtext(
-        self,
-        text,
-        x,
-        y,
-        width,
-        height=3.5,
-        layer="TEXT"
-    ):
-        """
-        MText с ограниченной шириной.
-        Используется для длинных наименований.
-        """
-
-        entity = self.space.AddMText(
-            (
-                float(x),
-                float(y),
-                0.0
-            ),
-            float(width),
-            str(text)
-        )
-
-        entity.Height = float(height)
 
         entity.Layer = layer
 
