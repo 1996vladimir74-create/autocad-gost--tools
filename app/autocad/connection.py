@@ -1,4 +1,4 @@
-iimport logging
+import logging
 import time
 
 import pythoncom
@@ -6,113 +6,127 @@ import win32com.client
 
 
 class AutoCADConnection:
-    """
-    Управление подключением к AutoCAD через COM.
-    """
 
     def __init__(self):
-        self.acad = None
+
         self.logger = logging.getLogger(
             "AutoCAD_GOST_Tools"
         )
 
+        self.app = None
+
     def connect(self):
-        """
-        Подключается к уже запущенному AutoCAD.
-        Если AutoCAD не запущен — запускает его.
-        """
+
+        self.logger.info(
+            "Инициализация COM..."
+        )
 
         pythoncom.CoInitialize()
 
-        # Сначала пробуем получить уже запущенный AutoCAD
+        # Сначала пробуем уже запущенный AutoCAD.
         try:
-            self.acad = win32com.client.GetActiveObject(
-                "AutoCAD.Application"
-            )
 
-            self.acad.Visible = True
+            self.app = (
+                win32com.client.GetActiveObject(
+                    "AutoCAD.Application"
+                )
+            )
 
             self.logger.info(
-                "Получено существующее подключение к AutoCAD"
+                "Подключение к уже запущенному AutoCAD выполнено"
             )
 
-            self._wait_until_ready()
+            return self.app
 
-            return self.acad
+        except Exception as error:
 
-        except Exception:
             self.logger.info(
-                "Запущенного AutoCAD не найдено. "
-                "Запускаем новый экземпляр."
+                f"Запущенный AutoCAD не найден: {error}"
             )
 
-        # Если AutoCAD не запущен — запускаем
+        # Затем пробуем создать AutoCAD через
+        # стандартный ProgID.
         try:
-            self.acad = win32com.client.DispatchEx(
-                "AutoCAD.Application"
+
+            self.logger.info(
+                "Попытка запуска AutoCAD.Application..."
             )
 
-            self.acad.Visible = True
-
-            self._wait_until_ready()
+            self.app = (
+                win32com.client.Dispatch(
+                    "AutoCAD.Application"
+                )
+            )
 
             self.logger.info(
                 "AutoCAD успешно запущен"
             )
 
-            return self.acad
+            time.sleep(3)
+
+            self.app.Visible = True
+
+            return self.app
 
         except Exception as error:
 
-            self.logger.exception(
-                "Не удалось запустить AutoCAD"
+            self.logger.error(
+                f"AutoCAD.Application не запустился: {error}"
             )
 
-            raise ConnectionError(
-                "Не удалось запустить AutoCAD.\n"
-                "Убедитесь, что AutoCAD установлен."
+        # AutoCAD 2021 использует COM ProgID
+        # с версией 24.0.
+        try:
+
+            self.logger.info(
+                "Попытка запуска AutoCAD.Application.24.0..."
+            )
+
+            self.app = (
+                win32com.client.Dispatch(
+                    "AutoCAD.Application.24.0"
+                )
+            )
+
+            self.logger.info(
+                "AutoCAD 2021 успешно запущен через ProgID 24.0"
+            )
+
+            time.sleep(3)
+
+            self.app.Visible = True
+
+            return self.app
+
+        except Exception as error:
+
+            self.logger.error(
+                f"AutoCAD.Application.24.0 не запустился: {error}"
+            )
+
+            raise RuntimeError(
+                "Не удалось подключиться к AutoCAD через COM. "
+                "Проверь регистрацию AutoCAD."
             ) from error
 
-    def _wait_until_ready(
-        self,
-        timeout=30
-    ):
-        """
-        Ждет, пока AutoCAD закончит запуск.
-        """
-
-        start_time = time.time()
-
-        while time.time() - start_time < timeout:
-
-            try:
-
-                state = self.acad.GetAcadState()
-
-                if state.IsQuiescent:
-                    return
-
-            except Exception:
-                pass
-
-            time.sleep(0.5)
-
-        raise TimeoutError(
-            "AutoCAD слишком долго запускается."
-        )
-
     def create_document(self):
-        """
-        Создает новый DWG.
-        """
 
-        if self.acad is None:
-            self.connect()
+        if self.app is None:
 
-        document = self.acad.Documents.Add()
+            raise RuntimeError(
+                "AutoCAD не подключен."
+            )
 
         self.logger.info(
-            "Создан новый DWG"
+            "Создание нового документа AutoCAD..."
+        )
+
+        document = self.app.Documents.Add()
+
+        time.sleep(3)
+
+        self.logger.info(
+            "Новый документ AutoCAD создан"
         )
 
         return document
