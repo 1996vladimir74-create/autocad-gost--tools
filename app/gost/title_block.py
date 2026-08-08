@@ -9,13 +9,8 @@ class TitleBlock:
 
     def __init__(self, space):
 
-        self.geometry = Geometry(
-            space
-        )
-
-        self.text = TextManager(
-            space
-        )
+        self.geometry = Geometry(space)
+        self.text = TextManager(space)
 
     def create(
         self,
@@ -24,88 +19,105 @@ class TitleBlock:
         sheet_height
     ):
 
-        # Основная надпись располагается
-        # в правом нижнем углу рамки.
-
-        x0 = (
-            float(sheet_width)
-            - 5.0
-            - self.WIDTH
-        )
-
+        # Нижний правый угол рамки штампа.
+        x0 = float(sheet_width) - 5.0 - self.WIDTH
         y0 = 5.0
 
-        self._draw_outer(
+        self._create_outer_frame(
             x0,
             y0
         )
 
-        self._draw_grid(
+        self._create_grid(
             x0,
             y0
         )
 
-        self._draw_text(
+        self._create_text(
             drawing,
             x0,
             y0
         )
 
-    def _draw_outer(
+        return {
+            "x": x0,
+            "y": y0,
+            "width": self.WIDTH,
+            "height": self.HEIGHT
+        }
+
+    def _create_outer_frame(
         self,
         x0,
         y0
     ):
 
-        self.geometry.rectangle(
+        self.geometry.line(
             x0,
             y0,
-            self.WIDTH,
-            self.HEIGHT,
+            x0 + self.WIDTH,
+            y0,
             "TITLE_BLOCK"
         )
 
-    def _draw_grid(
+        self.geometry.line(
+            x0 + self.WIDTH,
+            y0,
+            x0 + self.WIDTH,
+            y0 + self.HEIGHT,
+            "TITLE_BLOCK"
+        )
+
+        self.geometry.line(
+            x0 + self.WIDTH,
+            y0 + self.HEIGHT,
+            x0,
+            y0 + self.HEIGHT,
+            "TITLE_BLOCK"
+        )
+
+        self.geometry.line(
+            x0,
+            y0 + self.HEIGHT,
+            x0,
+            y0,
+            "TITLE_BLOCK"
+        )
+
+    def _create_grid(
         self,
         x0,
         y0
     ):
         """
-        Внутренняя сетка формы 1.
+        Внутренняя сетка штампа.
 
-        Геометрия вынесена в отдельный метод,
-        чтобы её можно было точно корректировать
-        без изменения остальной программы.
+        На этом этапе задача —
+        гарантированно получить полностью
+        прорисованную сетку.
         """
 
-        # Горизонтальные уровни.
-        #
-        # 55 мм общей высоты.
-        #
-        # Нижний ряд: 7
-        # Следующий: 10
-        # Следующий: 15
-        # Верхний: 23
+        # Горизонтальные линии
 
-        rows = [
+        horizontal_lines = [
             7.0,
             17.0,
             32.0
         ]
 
-        for row in rows:
+        for offset in horizontal_lines:
 
             self.geometry.line(
                 x0,
-                y0 + row,
+                y0 + offset,
                 x0 + self.WIDTH,
-                y0 + row,
+                y0 + offset,
                 "TITLE_BLOCK"
             )
 
-        # Основные вертикальные разделители.
+        # Вертикальные линии
 
-        verticals = [
+        vertical_lines = [
             70.0,
             105.0,
             125.0,
@@ -113,93 +125,95 @@ class TitleBlock:
             165.0
         ]
 
-        for value in verticals:
+        for offset in vertical_lines:
 
             self.geometry.line(
-                x0 + value,
+                x0 + offset,
                 y0,
-                x0 + value,
+                x0 + offset,
                 y0 + self.HEIGHT,
                 "TITLE_BLOCK"
             )
 
-    def _draw_text(
+    def _create_text(
         self,
         drawing,
         x0,
         y0
     ):
-        """
-        Текст размещается внутри отдельных ячеек,
-        с отступом от линий.
-        """
 
-        padding = 2.0
-
+        # ----------------------------
         # Наименование
+        # ----------------------------
 
-        self.text.add_mtext(
+        self.text.add_text(
             drawing.name,
-            x0 + padding,
-            y0 + 49.0,
-            66.0,
-            5.0,
-            "TEXT"
-        )
-
-        # Обозначение
-
-        self.text.add_mtext(
-            drawing.number,
-            x0 + 72.0,
-            y0 + 49.0,
-            31.0,
+            x0 + 2.0,
+            y0 + 43.0,
             3.5,
             "TEXT"
         )
 
+        # ----------------------------
+        # Номер чертежа
+        # ----------------------------
+
+        self.text.add_text(
+            drawing.number,
+            x0 + 72.0,
+            y0 + 43.0,
+            3.5,
+            "TEXT"
+        )
+
+        # ----------------------------
         # Разработал
+        # ----------------------------
 
         self.text.add_text(
             "Разраб.",
-            x0 + padding,
-            y0 + 35.0,
-            3.5,
+            x0 + 2.0,
+            y0 + 28.0,
+            3.0,
             "TEXT"
         )
 
         self.text.add_text(
-            drawing.designer,
-            x0 + padding,
-            y0 + 27.0,
-            3.5,
+            drawing.designer or "",
+            x0 + 2.0,
+            y0 + 20.0,
+            3.0,
             "TEXT"
         )
 
+        # ----------------------------
         # Проверил
+        # ----------------------------
 
         self.text.add_text(
             "Пров.",
             x0 + 72.0,
-            y0 + 35.0,
-            3.5,
+            y0 + 28.0,
+            3.0,
             "TEXT"
         )
 
         self.text.add_text(
-            drawing.checker,
+            drawing.checker or "",
             x0 + 72.0,
-            y0 + 27.0,
-            3.5,
+            y0 + 20.0,
+            3.0,
             "TEXT"
         )
 
+        # ----------------------------
         # Масштаб
+        # ----------------------------
 
         self.text.add_text(
             "Масштаб",
             x0 + 127.0,
-            y0 + 35.0,
+            y0 + 28.0,
             3.0,
             "TEXT"
         )
@@ -207,54 +221,59 @@ class TitleBlock:
         self.text.add_text(
             drawing.scale,
             x0 + 127.0,
-            y0 + 27.0,
-            3.5,
+            y0 + 20.0,
+            3.0,
             "TEXT"
         )
 
+        # ----------------------------
         # Организация
+        # ----------------------------
 
-        self.text.add_mtext(
-            drawing.organization,
+        self.text.add_text(
+            drawing.organization or "",
             x0 + 2.0,
-            y0 + 13.0,
-            101.0,
-            3.5,
+            y0 + 10.0,
+            3.0,
             "TEXT"
         )
 
+        # ----------------------------
         # Лист
+        # ----------------------------
 
         self.text.add_text(
             "Лист",
             x0 + 147.0,
-            y0 + 13.0,
+            y0 + 12.0,
             3.0,
             "TEXT"
         )
 
         self.text.add_text(
             "1",
-            x0 + 147.0,
-            y0 + 5.0,
+            x0 + 149.0,
+            y0 + 3.0,
             3.5,
             "TEXT"
         )
 
+        # ----------------------------
         # Листов
+        # ----------------------------
 
         self.text.add_text(
             "Листов",
             x0 + 167.0,
-            y0 + 13.0,
+            y0 + 12.0,
             3.0,
             "TEXT"
         )
 
         self.text.add_text(
             "1",
-            x0 + 167.0,
-            y0 + 5.0,
+            x0 + 169.0,
+            y0 + 3.0,
             3.5,
             "TEXT"
         )
