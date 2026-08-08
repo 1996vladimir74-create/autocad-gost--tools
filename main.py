@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import messagebox, ttk
+from gui import MainWindow
+from logger import setup_logger
+
 
 FORMATS_MM: dict[str, tuple[int, int]] = {
     "A0": (841, 1189),
@@ -218,9 +221,23 @@ def build_gui() -> tk.Tk:
     return root
 
 
-def main() -> None:
-    root = build_gui()
-    root.mainloop()
+from gui import MainWindow
+from logger import setup_logger
+
+
+def main():
+
+    logger = setup_logger()
+
+    logger.info(
+        "AutoCAD GOST Tools запущен"
+    )
+
+    window = MainWindow(
+        logger
+    )
+
+    window.run()
 
 
 if __name__ == "__main__":
