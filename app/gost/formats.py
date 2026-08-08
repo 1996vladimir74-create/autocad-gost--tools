@@ -34,23 +34,33 @@ FORMATS = {
 }
 
 
-def get_sheet_size(sheet_format, orientation):
-    """
-    Возвращает размеры листа
-    с учетом ориентации
-    """
+def get_sheet_size(
+    sheet_format,
+    orientation
+):
 
     if sheet_format not in FORMATS:
+
         raise ValueError(
-            f"Неизвестный формат {sheet_format}"
+            f"Неизвестный формат: {sheet_format}"
         )
 
-    size = FORMATS[sheet_format].copy()
+    # Для A4 стандартное расположение —
+    # вертикальное.
+
+    if sheet_format == "A4":
+
+        orientation = "portrait"
+
+    size = FORMATS[
+        sheet_format
+    ].copy()
 
     if orientation.lower() in [
         "landscape",
         "альбомная"
     ]:
+
         size["width"], size["height"] = (
             size["height"],
             size["width"]
