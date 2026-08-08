@@ -1,4 +1,5 @@
 import logging
+import time
 
 
 class AutoCADDiagnostic:
@@ -14,242 +15,149 @@ class AutoCADDiagnostic:
     def run(self):
 
         self.logger.info(
-            "========== AUTOCADE DIAGNOSTIC START =========="
+            "========== DIAGNOSTIC START =========="
         )
 
-        self._print_document_state()
+        time.sleep(1)
 
-        self._activate_paper_space()
+        self._set_paper_space()
 
-        self._print_document_state()
+        time.sleep(1)
 
-        self._create_test_geometry()
+        self._create_a3_frame()
 
-        self._print_entity_counts()
+        time.sleep(1)
 
-        self.document.Regen(1)
+        self._create_test_text()
 
-        self.logger.info(
-            "========== AUTOCADE DIAGNOSTIC END =========="
-        )
+        time.sleep(1)
 
-    def _print_document_state(self):
+        self._report_state()
 
         try:
-
-            tilemode = self.document.GetVariable(
-                "TILEMODE"
+            self.document.Regen(1)
+        except Exception as error:
+            self.logger.warning(
+                f"Regen error: {error}"
             )
 
-        except Exception:
-
-            tilemode = "ERROR"
-
-        try:
-
-            active_space = self.document.ActiveSpace
-
-        except Exception:
-
-            active_space = "ERROR"
-
-        try:
-
-            active_layout = (
-                self.document.ActiveLayout.Name
-            )
-
-        except Exception:
-
-            active_layout = "ERROR"
-
         self.logger.info(
-            f"TILEMODE = {tilemode}"
+            "========== DIAGNOSTIC END =========="
         )
 
-        self.logger.info(
-            f"ActiveSpace = {active_space}"
-        )
-
-        self.logger.info(
-            f"ActiveLayout = {active_layout}"
-        )
-
-    def _activate_paper_space(self):
+    def _set_paper_space(self):
 
         self.logger.info(
             "Переключение в Paper Space..."
         )
 
-        # 0 = Paper Space
-        self.document.SetVariable(
-            "TILEMODE",
-            0
-        )
+        try:
 
-        self.document.ActiveSpace = 0
+            self.document.SetVariable(
+                "TILEMODE",
+                0
+            )
 
-        self.document.MSpace = False
+            time.sleep(0.5)
+
+            self.document.ActiveSpace = 0
+
+            time.sleep(0.5)
+
+            self.document.MSpace = False
+
+            self.logger.info(
+                "Paper Space активирован"
+            )
+
+        except Exception as error:
+
+            self.logger.error(
+                f"Paper Space error: {error}"
+            )
+
+            raise
+
+    def _create_a3_frame(self):
+
+        space = self.document.PaperSpace
+
+        # A3 landscape
+        sheet_width = 420.0
+        sheet_height = 297.0
+
+        # Рабочая рамка
+        left = 20.0
+        bottom = 5.0
+        right = 5.0
+        top = 5.0
+
+        x1 = left
+        y1 = bottom
+
+        x2 = sheet_width - right
+        y2 = sheet_height - top
 
         self.logger.info(
-            "Paper Space активирован"
+            f"A3: {sheet_width} x {sheet_height}"
         )
-
-    def _create_test_geometry(self):
-
-        paper_space = self.document.PaperSpace
 
         self.logger.info(
-            "Получен PaperSpace объект"
+            f"Frame: ({x1},{y1}) -> ({x2},{y2})"
         )
 
-        # ---------------------------------
-        # Тестовая внешняя рамка
-        # ---------------------------------
-
+        # Нижняя
         self._line(
-            paper_space,
-            20,
-            20,
-            400,
-            20
+            space,
+            x1,
+            y1,
+            x2,
+            y1
         )
 
+        # Правая
         self._line(
-            paper_space,
-            400,
-            20,
-            400,
-            277
+            space,
+            x2,
+            y1,
+            x2,
+            y2
         )
 
+        # Верхняя
         self._line(
-            paper_space,
-            400,
-            277,
-            20,
-            277
+            space,
+            x2,
+            y2,
+            x1,
+            y2
         )
 
+        # Левая
         self._line(
-            paper_space,
-            20,
-            277,
-            20,
-            20
+            space,
+            x1,
+            y2,
+            x1,
+            y1
         )
 
-        # ---------------------------------
-        # Тестовая внутренняя рамка
-        # ---------------------------------
+    def _create_test_text(self):
 
-        self._line(
-            paper_space,
-            25,
-            25,
-            395,
-            25
-        )
+        space = self.document.PaperSpace
 
-        self._line(
-            paper_space,
-            395,
-            25,
-            395,
-            272
-        )
-
-        self._line(
-            paper_space,
-            395,
-            272,
-            25,
-            272
-        )
-
-        self._line(
-            paper_space,
-            25,
-            272,
-            25,
-            25
-        )
-
-        # ---------------------------------
-        # Тестовый штамп
-        # ---------------------------------
-
-        x = 210
-        y = 25
-
-        width = 185
-        height = 55
-
-        self._rectangle(
-            paper_space,
-            x,
-            y,
-            width,
-            height
-        )
-
-        # ---------------------------------
-        # Одна тестовая надпись
-        # ---------------------------------
-
-        text = paper_space.AddText(
-            "AUTO CAD GOST TEST",
+        text = space.AddText(
+            "A3 GOST TEST",
             (
-                215.0,
-                50.0,
+                25.0,
+                280.0,
                 0.0
             ),
             5.0
         )
 
         self.logger.info(
-            f"Создан TEXT entity: {text.ObjectName}"
-        )
-
-    def _rectangle(
-        self,
-        space,
-        x,
-        y,
-        width,
-        height
-    ):
-
-        self._line(
-            space,
-            x,
-            y,
-            x + width,
-            y
-        )
-
-        self._line(
-            space,
-            x + width,
-            y,
-            x + width,
-            y + height
-        )
-
-        self._line(
-            space,
-            x + width,
-            y + height,
-            x,
-            y + height
-        )
-
-        self._line(
-            space,
-            x,
-            y + height,
-            x,
-            y
+            f"TEXT created: {text.ObjectName}"
         )
 
     def _line(
@@ -275,12 +183,40 @@ class AutoCADDiagnostic:
         )
 
         self.logger.info(
-            f"Создан LINE: {entity.ObjectName}"
+            f"LINE created: {entity.ObjectName}"
         )
 
         return entity
 
-    def _print_entity_counts(self):
+    def _report_state(self):
+
+        try:
+
+            tilemode = self.document.GetVariable(
+                "TILEMODE"
+            )
+
+        except Exception as error:
+
+            tilemode = f"ERROR: {error}"
+
+        try:
+
+            active_space = self.document.ActiveSpace
+
+        except Exception as error:
+
+            active_space = f"ERROR: {error}"
+
+        try:
+
+            active_layout = (
+                self.document.ActiveLayout.Name
+            )
+
+        except Exception as error:
+
+            active_layout = f"ERROR: {error}"
 
         try:
 
@@ -288,9 +224,9 @@ class AutoCADDiagnostic:
                 self.document.ModelSpace.Count
             )
 
-        except Exception:
+        except Exception as error:
 
-            model_count = "ERROR"
+            model_count = f"ERROR: {error}"
 
         try:
 
@@ -298,9 +234,21 @@ class AutoCADDiagnostic:
                 self.document.PaperSpace.Count
             )
 
-        except Exception:
+        except Exception as error:
 
-            paper_count = "ERROR"
+            paper_count = f"ERROR: {error}"
+
+        self.logger.info(
+            f"TILEMODE = {tilemode}"
+        )
+
+        self.logger.info(
+            f"ActiveSpace = {active_space}"
+        )
+
+        self.logger.info(
+            f"ActiveLayout = {active_layout}"
+        )
 
         self.logger.info(
             f"ModelSpace entities = {model_count}"
