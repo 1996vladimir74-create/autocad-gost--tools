@@ -7,6 +7,8 @@ import win32com.client
 
 class AutoCADConnection:
 
+    PROG_ID = "AutoCAD.Application.24"
+
     def __init__(self):
 
         self.logger = logging.getLogger(
@@ -23,17 +25,21 @@ class AutoCADConnection:
 
         pythoncom.CoInitialize()
 
-        # Сначала пробуем уже запущенный AutoCAD.
+        # -------------------------------------------------
+        # 1. Пытаемся подключиться к уже запущенному AutoCAD
+        # -------------------------------------------------
+
         try:
 
             self.app = (
                 win32com.client.GetActiveObject(
-                    "AutoCAD.Application"
+                    self.PROG_ID
                 )
             )
 
             self.logger.info(
-                "Подключение к уже запущенному AutoCAD выполнено"
+                "Подключение к запущенному "
+                "AutoCAD 2021 выполнено"
             )
 
             return self.app
@@ -41,72 +47,46 @@ class AutoCADConnection:
         except Exception as error:
 
             self.logger.info(
-                f"Запущенный AutoCAD не найден: {error}"
+                "Запущенный AutoCAD 2021 не найден: "
+                f"{error}"
             )
 
-        # Затем пробуем создать AutoCAD через
-        # стандартный ProgID.
+        # -------------------------------------------------
+        # 2. Если AutoCAD не запущен — запускаем его
+        # -------------------------------------------------
+
         try:
 
             self.logger.info(
-                "Попытка запуска AutoCAD.Application..."
+                f"Запуск {self.PROG_ID}..."
             )
 
             self.app = (
                 win32com.client.Dispatch(
-                    "AutoCAD.Application"
+                    self.PROG_ID
                 )
             )
 
-            self.logger.info(
-                "AutoCAD успешно запущен"
-            )
-
-            time.sleep(3)
+            time.sleep(5)
 
             self.app.Visible = True
+
+            self.logger.info(
+                "AutoCAD 2021 успешно запущен"
+            )
 
             return self.app
 
         except Exception as error:
 
-            self.logger.error(
-                f"AutoCAD.Application не запустился: {error}"
-            )
-
-        # AutoCAD 2021 использует COM ProgID
-        # с версией 24.0.
-        try:
-
-            self.logger.info(
-                "Попытка запуска AutoCAD.Application.24.0..."
-            )
-
-            self.app = (
-                win32com.client.Dispatch(
-                    "AutoCAD.Application.24.0"
-                )
-            )
-
-            self.logger.info(
-                "AutoCAD 2021 успешно запущен через ProgID 24.0"
-            )
-
-            time.sleep(3)
-
-            self.app.Visible = True
-
-            return self.app
-
-        except Exception as error:
-
-            self.logger.error(
-                f"AutoCAD.Application.24.0 не запустился: {error}"
+            self.logger.exception(
+                "Не удалось запустить AutoCAD 2021"
             )
 
             raise RuntimeError(
-                "Не удалось подключиться к AutoCAD через COM. "
-                "Проверь регистрацию AutoCAD."
+                "Не удалось подключиться к AutoCAD 2021 "
+                "через COM ProgID "
+                f"'{self.PROG_ID}'."
             ) from error
 
     def create_document(self):
@@ -121,12 +101,27 @@ class AutoCADConnection:
             "Создание нового документа AutoCAD..."
         )
 
-        document = self.app.Documents.Add()
+        try:
 
-        time.sleep(3)
+            document = (
+                self.app.Documents.Add()
+            )
 
-        self.logger.info(
-            "Новый документ AutoCAD создан"
-        )
+            time.sleep(3)
 
-        return document
+            self.logger.info(
+                "Новый документ AutoCAD создан"
+            )
+
+            return document
+
+        except Exception as error:
+
+            self.logger.exception(
+                "Ошибка создания документа AutoCAD"
+            )
+
+            raise RuntimeError(
+                "Не удалось создать новый документ "
+                "AutoCAD."
+            ) from error
