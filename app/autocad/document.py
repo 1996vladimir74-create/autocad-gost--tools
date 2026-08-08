@@ -3,47 +3,68 @@ import logging
 
 class AutoCADDocument:
 
+    def __init__(self, document):
 
-    def __init__(self, acad):
-
-        self.acad = acad
-        self.document = None
+        self.document = document
 
         self.logger = logging.getLogger(
             "AutoCAD_GOST_Tools"
         )
 
+    def set_units(self):
+        """
+        Устанавливает миллиметры как единицы чертежа.
+        """
 
-    def create(self):
+        # AutoCAD INSUNITS:
+        # 4 = Millimeters
 
-        self.document = (
-            self.acad.Documents.Add()
+        self.document.SetVariable(
+            "INSUNITS",
+            4
+        )
+
+        self.document.SetVariable(
+            "MEASUREMENT",
+            1
         )
 
         self.logger.info(
-            "Создан новый DWG документ"
+            "Единицы документа установлены: мм"
         )
 
-        return self.document
+    def get_layout(self):
+        """
+        Получает Layout1 и делает его активным.
+        """
 
+        layouts = self.document.Layouts
 
+        layout = layouts.Item(
+            "Layout1"
+        )
 
-    def save(self, path):
+        self.document.ActiveLayout = layout
 
-        if self.document:
+        self.logger.info(
+            "Активирован Layout1"
+        )
 
-            self.document.SaveAs(
-                path
-            )
+        return layout
 
-            self.logger.info(
-                f"Файл сохранен: {path}"
-            )
-    def save_as(
-    self,
-    path
-):
+    def get_paper_space(self):
+        """
+        Возвращает PaperSpace активного Layout.
+        """
 
-    self.document.SaveAs(
-        path
-    )
+        return self.document.PaperSpace
+
+    def save_as(self, path):
+
+        self.document.SaveAs(
+            path
+        )
+
+        self.logger.info(
+            f"DWG сохранен: {path}"
+        )
