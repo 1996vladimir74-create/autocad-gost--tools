@@ -1,16 +1,16 @@
+from tkinter import messagebox
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
 
 from models.drawing import Drawing
+
 from autocad.connection import AutoCADConnection
 from autocad.document import AutoCADDocument
 from autocad.layers import LayerManager
-
 from autocad.setup import AutoCADSetup
 
 from gost.frame import GostFrame
 from gost.title_block import TitleBlock
-
 class MainWindow:
 
     def __init__(self, logger):
