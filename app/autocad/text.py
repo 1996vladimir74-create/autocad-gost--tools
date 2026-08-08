@@ -1,43 +1,58 @@
-import logging
-
-
 class TextManager:
 
+    def __init__(self, space):
 
-    def __init__(self, document):
-
-        self.space = (
-            document.ModelSpace
-        )
-
-        self.logger = logging.getLogger(
-            "AutoCAD_GOST_Tools"
-        )
-
-
+        self.space = space
 
     def add_text(
         self,
         text,
         x,
         y,
-        height=5
+        height=3.5,
+        layer="TEXT"
     ):
 
-        point = (
-            x,
-            y,
-            0
+        entity = self.space.AddText(
+            str(text),
+            (
+                float(x),
+                float(y),
+                0.0
+            ),
+            float(height)
         )
 
+        entity.Layer = layer
 
-        entity = (
-            self.space.AddText(
-                text,
-                point,
-                height
-            )
+        return entity
+
+    def add_mtext(
+        self,
+        text,
+        x,
+        y,
+        width,
+        height=3.5,
+        layer="TEXT"
+    ):
+        """
+        MText с ограниченной шириной.
+        Используется для длинных наименований.
+        """
+
+        entity = self.space.AddMText(
+            (
+                float(x),
+                float(y),
+                0.0
+            ),
+            float(width),
+            str(text)
         )
 
+        entity.Height = float(height)
+
+        entity.Layer = layer
 
         return entity
