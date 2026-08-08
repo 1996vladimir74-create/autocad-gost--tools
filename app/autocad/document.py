@@ -12,12 +12,6 @@ class AutoCADDocument:
         )
 
     def set_units(self):
-        """
-        Устанавливает миллиметры как единицы чертежа.
-        """
-
-        # AutoCAD INSUNITS:
-        # 4 = Millimeters
 
         self.document.SetVariable(
             "INSUNITS",
@@ -34,9 +28,6 @@ class AutoCADDocument:
         )
 
     def get_layout(self):
-        """
-        Получает Layout1 и делает его активным.
-        """
 
         layouts = self.document.Layouts
 
@@ -53,11 +44,23 @@ class AutoCADDocument:
         return layout
 
     def get_paper_space(self):
-        """
-        Возвращает PaperSpace активного Layout.
-        """
 
         return self.document.PaperSpace
+
+    def activate_paper_space(self):
+
+        self.document.SetVariable(
+            "TILEMODE",
+            0
+        )
+
+        self.document.ActiveSpace = 0
+
+        self.document.MSpace = False
+
+        self.logger.info(
+            "Paper Space активирован"
+        )
 
     def save_as(self, path):
 
