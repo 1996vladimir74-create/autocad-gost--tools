@@ -5,13 +5,11 @@ from gost.standards import GOST_FRAME
 
 class GostFrame:
 
-
-    def __init__(self, document):
+    def __init__(self, space):
 
         self.geometry = Geometry(
-            document
+            space
         )
-
 
     def create(
         self,
@@ -24,69 +22,51 @@ class GostFrame:
             orientation
         )
 
-
-        width = size["width"]
-        height = size["height"]
-
-
-        left = GOST_FRAME["left_margin"]
-        right = GOST_FRAME["right_margin"]
-        top = GOST_FRAME["top_margin"]
-        bottom = GOST_FRAME["bottom_margin"]
-
-
-        x1 = left
-        y1 = bottom
-
-        x2 = width - right
-        y2 = height - top
-
-
-        # нижняя линия
-
-        self.geometry.line(
-            x1,
-            y1,
-            x2,
-            y1,
-            "FRAME"
+        width = float(
+            size["width"]
         )
 
-
-        # правая линия
-
-        self.geometry.line(
-            x2,
-            y1,
-            x2,
-            y2,
-            "FRAME"
+        height = float(
+            size["height"]
         )
 
-
-        # верхняя линия
-
-        self.geometry.line(
-            x2,
-            y2,
-            x1,
-            y2,
-            "FRAME"
+        left = float(
+            GOST_FRAME["left_margin"]
         )
 
-
-        # левая линия
-
-        self.geometry.line(
-            x1,
-            y2,
-            x1,
-            y1,
-            "FRAME"
+        right = float(
+            GOST_FRAME["right_margin"]
         )
 
+        top = float(
+            GOST_FRAME["top_margin"]
+        )
+
+        bottom = float(
+            GOST_FRAME["bottom_margin"]
+        )
+
+        frame_width = (
+            width - left - right
+        )
+
+        frame_height = (
+            height - top - bottom
+        )
+
+        self.geometry.rectangle(
+            left,
+            bottom,
+            frame_width,
+            frame_height,
+            "FRAME"
+        )
 
         return {
             "width": width,
-            "height": height
+            "height": height,
+            "frame_x": left,
+            "frame_y": bottom,
+            "frame_width": frame_width,
+            "frame_height": frame_height
         }
